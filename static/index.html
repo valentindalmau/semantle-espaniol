@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>Semantle ES</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f7f7f4;
+            --panel: #ffffff;
+            --text: #1f2933;
+            --muted: #667069;
+            --line: #deddd5;
+            --soft: #efeee8;
+            --accent: #155e75;
+            --accent2: #2f6f4e;
+            --danger: #9f1239;
+            --warn: #92400e;
+            --highlight: #fff3bf;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        }
+
+        .wrap {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            padding: 28px 16px 44px;
+        }
+
+        header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(28px, 5vw, 42px);
+            line-height: 1;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        button,
+        input,
+        select {
+            min-height: 42px;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            padding: 0 14px;
+            color: #fff;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .45;
+        }
+
+        select,
+        input {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--text);
+            padding: 0 12px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid rgba(21, 94, 117, .25);
+            border-color: var(--accent);
+        }
+
+        .modebar,
+        .toolbar,
+        .gamebar {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .modebar {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .toolbar,
+        .gamebar {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .secondary {
+            background: #3f4641;
+        }
+
+        .success {
+            background: var(--accent2);
+        }
+
+        .danger {
+            background: var(--danger);
+        }
+
+        .ghost {
+            background: #e4e2d8;
+            color: #26302a;
+        }
+
+        .active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .form {
+            display: flex;
+            gap: 10px;
+            margin: 18px 0 8px;
+        }
+
+        .form input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message {
+            min-height: 22px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        .summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 20px 0 8px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--soft);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: var(--soft);
+            color: #3f4641;
+            font-weight: 700;
+        }
+
+        tr.best td {
+            background: #edf7ed;
+        }
+
+        tr.highlight td {
+            background: var(--highlight);
+        }
+
+        tr.pinned td {
+            box-shadow: inset 0 2px 0 rgba(21, 94, 117, .25);
+        }
+
+        .bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #e0e0d8;
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            border-radius: inherit;
+            background: var(--accent);
+        }
+
+        .fill.hot {
+            background: var(--accent2);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #e4e2d8;
+            color: #394038;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 760px) {
+            header,
+            .summary {
+                display: block;
+            }
+
+            header .date,
+            #stats {
+                margin-top: 8px;
+            }
+
+            .modebar,
+            .toolbar,
+            .gamebar,
+            .form {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrap">
+        <header>
+            <div>
+                <h1>Semantle ES</h1>
+                <p>Palabra diaria en espanol. La similitud va de -100 a 100.</p>
+            </div>
+            <div class="date">
+                <p>Fecha</p>
+                <strong id="todayLabel"></strong>
+            </div>
+        </header>
+
+        <section class="modebar" aria-label="Modo de juego">
+            <button id="btnDailyMode" class="active" type="button">Modo diario</button>
+            <button id="btnPracticeMode" class="ghost" type="button">Modo practica</button>
+        </section>
+
+        <section class="toolbar" aria-label="Controles">
+            <button id="btnReset" type="button">Reiniciar partida</button>
+            <button id="btnNewSeed" class="secondary" type="button">Nueva palabra</button>
+            <select id="sortSelect" aria-label="Orden de intentos">
+                <option value="tryAsc">Intento ascendente</option>
+                <option value="tryDesc">Intento descendente</option>
+                <option value="simDesc" selected>Mayor similitud</option>
+                <option value="simAsc">Menor similitud</option>
+            </select>
+            <button id="btnGiveUp" class="danger" type="button">Rendirse</button>
+        </section>
+
+        <section class="gamebar" aria-label="Estado">
+            <button id="btnViewTop" class="success" type="button" disabled>Ver Top 1000</button>
+            <button id="btnShare" class="ghost" type="button" disabled>Compartir</button>
+            <span id="winBadge" class="badge hidden">Ganaste</span>
+            <span id="seedBadge" class="badge">Cargando...</span>
+        </section>
+
+        <form id="guessForm" class="form">
+            <input id="wordInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"
+                maxlength="40" placeholder="Escribi tu palabra, por ejemplo montana">
+            <button id="btnSubmit" type="submit">Probar</button>
+        </form>
+        <div id="errorMsg" class="message error"></div>
+        <div id="statusMsg" class="message"></div>
+        <div id="thresholdMsg" class="message"></div>
+
+        <section class="summary">
+            <h2>Intentos</h2>
+            <div id="stats" class="message"></div>
+        </section>
+
+        <section class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Palabra</th>
+                        <th>Similitud</th>
+                        <th>Barra</th>
+                        <th>Top 1000</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        const API = location.origin
+
+        const tbody = document.getElementById('tbody')
+        const form = document.getElementById('guessForm')
+        const input = document.getElementById('wordInput')
+        const submitBtn = document.getElementById('btnSubmit')
+        const errorMsg = document.getElementById('errorMsg')
+        const statusMsg = document.getElementById('statusMsg')
+        const thresholdMsg = document.getElementById('thresholdMsg')
+        const sortSelect = document.getElementById('sortSelect')
+        const btnReset = document.getElementById('btnReset')
+        const btnNewSeed = document.getElementById('btnNewSeed')
+        const btnGiveUp = document.getElementById('btnGiveUp')
+        const btnViewTop = document.getElementById('btnViewTop')
+        const btnShare = document.getElementById('btnShare')
+        const btnDailyMode = document.getElementById('btnDailyMode')
+        const btnPracticeMode = document.getElementById('btnPracticeMode')
+        const todayLabel = document.getElementById('todayLabel')
+        const stats = document.getElementById('stats')
+        const winBadge = document.getElementById('winBadge')
+        const seedBadge = document.getElementById('seedBadge')
+
+        let gameMode = localStorage.getItem('semantle:mode') || 'daily'
+        let seed = null
+        let dateKey = null
+        let storeKey = null
+        let tries = []
+        let nextTryNumber = 1
+        let gameOver = false
+        let won = false
+        let topUrl = null
+        let highlightedWord = null
+        let thresholds = null
+
+        function setError(message) {
+            errorMsg.textContent = message || ''
+        }
+
+        function setStatus(message) {
+            statusMsg.textContent = message || ''
+        }
+
+        function setThresholds(data) {
+            thresholds = data || null
+            if (!thresholds) {
+                thresholdMsg.textContent = ''
+                return
+            }
+            const top1000 = thresholds.top1000 == null ? '-' : thresholds.top1000.toFixed(1)
+            const top10 = thresholds.top10 == null ? '-' : thresholds.top10.toFixed(1)
+            const top1 = thresholds.top1 == null ? '-' : thresholds.top1.toFixed(1)
+            thresholdMsg.textContent = `Referencias: Top 1000 desde ${top1000}, Top 10 desde ${top10}, Top 1 sin contar la correcta ${top1}.`
+        }
+
+        function pctForBar(score) {
+            return Math.max(0, Math.min(100, (score + 100) / 2))
+        }
+
+        function pctForTop(rankDisplay, topK) {
+            if (!rankDisplay || !topK) return 0
+            return Math.max(0, Math.min(100, (rankDisplay / topK) * 100))
+        }
+
+        function lockUI() {
+            input.disabled = true
+            submitBtn.disabled = true
+        }
+
+        function unlockUI() {
+            input.disabled = false
+            submitBtn.disabled = false
+        }
+
+        function setControlsForMode() {
+            const daily = gameMode === 'daily'
+            btnDailyMode.classList.toggle('active', daily)
+            btnDailyMode.classList.toggle('ghost', !daily)
+            btnPracticeMode.classList.toggle('active', !daily)
+            btnPracticeMode.classList.toggle('ghost', daily)
+            btnReset.disabled = daily
+            btnNewSeed.disabled = daily
+        }
+
+        function saveState() {
+            if (!storeKey) return
+            localStorage.setItem(storeKey, JSON.stringify({ tries, nextTryNumber, gameOver, won, topUrl, seed }))
+        }
+
+        function loadState() {
+            const raw = localStorage.getItem(storeKey)
+            if (!raw) return
+            try {
+                const obj = JSON.parse(raw)
+                tries = Array.isArray(obj.tries) ? obj.tries : []
+                nextTryNumber = obj.nextTryNumber || tries.length + 1
+                gameOver = !!obj.gameOver
+                won = !!obj.won
+                topUrl = obj.topUrl || null
+                if (gameOver) lockUI()
+            } catch {
+                tries = []
+            }
+        }
+
+        function resetState() {
+            tries = []
+            nextTryNumber = 1
+            gameOver = false
+            won = false
+            topUrl = null
+            highlightedWord = null
+            thresholds = null
+            unlockUI()
+        }
+
+        function resetPractice(message = 'Se reinicio la partida.') {
+            if (gameMode !== 'practice') return
+            resetState()
+            saveState()
+            render()
+            updateButtons()
+            setStatus(message)
+            setError('')
+        }
+
+        function updateButtons() {
+            btnViewTop.disabled = !topUrl
+            btnShare.disabled = !gameOver
+            winBadge.classList.toggle('hidden', !won)
+            setControlsForMode()
+        }
+
+        function endGame(message, didWin, nearestUrl) {
+            gameOver = true
+            won = !!didWin
+            topUrl = nearestUrl || topUrl
+            lockUI()
+            updateButtons()
+            saveState()
+            setStatus(message)
+        }
+
+        function sortedTries() {
+            const mode = sortSelect.value
+            const list = [...tries]
+            if (mode === 'tryAsc') list.sort((a, b) => a.n - b.n)
+            if (mode === 'tryDesc') list.sort((a, b) => b.n - a.n)
+            if (mode === 'simDesc') list.sort((a, b) => b.score - a.score)
+            if (mode === 'simAsc') list.sort((a, b) => a.score - b.score)
+            return list
+        }
+
+        function render() {
+            tbody.replaceChildren()
+            const bestScore = tries.length ? Math.max(...tries.map(t => t.score)) : null
+            const list = sortedTries()
+            const mode = sortSelect.value
+            let rows = list
+
+            if ((mode === 'simDesc' || mode === 'simAsc') && tries.length) {
+                const last = tries.reduce((a, b) => a.n > b.n ? a : b)
+                rows = list.filter(t => t.n !== last.n)
+                renderRow(last, bestScore, true)
+            }
+
+            rows.forEach(t => renderRow(t, bestScore, false))
+
+            if (tries.length) {
+                const suffix = gameOver ? (won ? ' - Completado' : ' - Fin') : ''
+                stats.textContent = `Intentos: ${tries.length} - Mejor: ${bestScore.toFixed(1)}${suffix}`
+            } else {
+                stats.textContent = 'Sin intentos todavia'
+            }
+        }
+
+        function appendCell(row, text) {
+            const td = document.createElement('td')
+            td.textContent = text
+            row.appendChild(td)
+            return td
+        }
+
+        function renderRow(item, bestScore, pinned) {
+            const tr = document.createElement('tr')
+            if (gameOver && bestScore !== null && item.score === bestScore) tr.classList.add('best')
+            if (pinned) tr.classList.add('pinned')
+            if (highlightedWord && item.word === highlightedWord) tr.classList.add('highlight')
+
+            appendCell(tr, String(item.n))
+            const wordCell = appendCell(tr, item.word)
+            if (pinned) {
+                const badge = document.createElement('span')
+                badge.className = 'badge'
+                badge.textContent = 'Ultimo intento'
+                badge.style.marginLeft = '8px'
+                wordCell.appendChild(badge)
+            }
+            appendCell(tr, item.score.toFixed(1))
+
+            const barCell = document.createElement('td')
+            const bar = document.createElement('div')
+            bar.className = 'bar'
+            const fill = document.createElement('div')
+            fill.className = 'fill'
+            fill.style.width = `${pctForBar(item.score)}%`
+            bar.appendChild(fill)
+            barCell.appendChild(bar)
+            tr.appendChild(barCell)
+
+            const topCell = document.createElement('td')
+            const topText = item.rankDisplay && item.topK ? `${item.rankDisplay}/${item.topK}` : '-'
+            const topLabel = document.createElement('div')
+            topLabel.textContent = topText
+            topLabel.style.color = item.rankDisplay ? 'var(--accent2)' : 'var(--muted)'
+            topLabel.style.fontWeight = '700'
+            const topBar = document.createElement('div')
+            topBar.className = 'bar'
+            topBar.style.marginTop = '6px'
+            const topFill = document.createElement('div')
+            topFill.className = 'fill hot'
+            topFill.style.width = `${pctForTop(item.rankDisplay, item.topK)}%`
+            topBar.appendChild(topFill)
+            topCell.appendChild(topLabel)
+            topCell.appendChild(topBar)
+            tr.appendChild(topCell)
+
+            tbody.appendChild(tr)
+        }
+
+        function computeRankDisplay(data) {
+            const topK = typeof data.k === 'number' ? data.k : 1000
+            if (typeof data.rank === 'number' && data.rank >= 1 && data.rank <= topK) {
+                return { rank: data.rank, rankDisplay: topK + 1 - data.rank, topK }
+            }
+            return { rank: null, rankDisplay: null, topK }
+        }
+
+        async function requestJson(url, options = {}) {
+            const res = await fetch(url, options)
+            const data = await res.json()
+            if (!res.ok || !data.ok) {
+                const suggestions = Array.isArray(data.suggestions) && data.suggestions.length
+                    ? ` Sugerencias: ${data.suggestions.join(', ')}.`
+                    : ''
+                throw new Error((data.error || 'Error de API') + suggestions)
+            }
+            return data
+        }
+
+        async function initDailyWord() {
+            const data = await requestJson(`${API}/api/today`)
+            seed = data.seed
+            dateKey = data.date
+            setThresholds(data.thresholds)
+            storeKey = `semantle:daily:${dateKey}`
+            todayLabel.textContent = dateKey
+            seedBadge.textContent = `Diario - Seed ${seed}`
+            loadState()
+        }
+
+        async function initPracticeWord() {
+            seed = Number(localStorage.getItem('semantle:practice:seed')) || Math.floor(10_000_000 + Math.random() * 89_999_999)
+            localStorage.setItem('semantle:practice:seed', String(seed))
+            const info = await requestJson(`${API}/new_target`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seed, random: true })
+            })
+            setThresholds(info.thresholds)
+            dateKey = `practice-${seed}`
+            storeKey = `semantle:practice:${seed}`
+            todayLabel.textContent = 'Practica'
+            seedBadge.textContent = `Practica - Seed ${seed}`
+            loadState()
+        }
+
+        async function initMode() {
+            resetState()
+            setError('')
+            setStatus('')
+            if (gameMode === 'daily') await initDailyWord()
+            else await initPracticeWord()
+            updateButtons()
+            render()
+        }
+
+        async function doGuess(word) {
+            if (gameOver) return
+            setError('')
+            setStatus('')
+            const normalized = word.trim().toLowerCase()
+            const previous = tries.find(t => t.word === normalized)
+            if (previous) {
+                highlightedWord = previous.word
+                render()
+                setStatus(`Ya probaste "${previous.word}" en el intento #${previous.n}.`)
+                return
+            }
+
+            const data = await requestJson(`${API}/guess`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seed, word })
+            })
+
+            const rankInfo = computeRankDisplay(data)
+            const item = {
+                n: nextTryNumber++,
+                word: data.word,
+                score: Number(data.score),
+                cosine: Number(data.similarity_cosine),
+                rank: rankInfo.rank,
+                rankDisplay: rankInfo.rankDisplay,
+                topK: rankInfo.topK
+            }
+
+            highlightedWord = item.word
+            tries.push(item)
+            saveState()
+            render()
+
+            if (data.correct === true) {
+                endGame(`Ganaste en ${item.n} intento(s). La palabra era "${item.word}".`, true, data.nearest_url)
+            }
+        }
+
+        async function giveUp() {
+            if (gameOver) return
+            setError('')
+            const data = await requestJson(`${API}/reveal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seed })
+            })
+            endGame(`Te rendiste. La palabra era "${data.target_word}".`, false, data.nearest_url)
+        }
+
+        async function newRandomTarget() {
+            if (gameMode !== 'practice') return
+            const rndSeed = Math.floor(10_000_000 + Math.random() * 89_999_999)
+            const info = await requestJson(`${API}/new_target`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seed: rndSeed, random: true })
+            })
+            setThresholds(info.thresholds)
+            seed = rndSeed
+            localStorage.setItem('semantle:practice:seed', String(seed))
+            dateKey = `practice-${seed}`
+            storeKey = `semantle:practice:${seed}`
+            todayLabel.textContent = 'Practica'
+            seedBadge.textContent = `Practica - Seed ${seed}`
+            resetPractice('Nueva palabra cargada.')
+        }
+
+        async function shareResult() {
+            const bestScore = tries.length ? Math.max(...tries.map(t => t.score)) : 0
+            const label = gameMode === 'daily' ? `Semantle ES ${dateKey}` : `Semantle ES practica ${seed}`
+            const result = won ? `${tries.length} intentos` : 'sin resolver'
+            const text = `${label}\n${result}\nMejor similitud: ${bestScore.toFixed(1)}`
+            try {
+                if (navigator.share) await navigator.share({ text })
+                else await navigator.clipboard.writeText(text)
+                setStatus('Resultado copiado para compartir.')
+            } catch {
+                setStatus(text)
+            }
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault()
+            const word = input.value.trim()
+            if (!word) {
+                setError('Escribi una palabra.')
+                return
+            }
+            try {
+                await doGuess(word)
+                input.value = ''
+                input.focus()
+            } catch (error) {
+                setError(error.message)
+            }
+        })
+
+        sortSelect.addEventListener('change', render)
+        btnReset.addEventListener('click', () => resetPractice())
+        btnGiveUp.addEventListener('click', () => giveUp().catch(error => setError(error.message)))
+        btnNewSeed.addEventListener('click', () => newRandomTarget().catch(error => setError(error.message)))
+        btnShare.addEventListener('click', () => shareResult())
+        btnViewTop.addEventListener('click', () => {
+            if (topUrl) window.open(topUrl, '_blank', 'noopener')
+        })
+        btnDailyMode.addEventListener('click', () => {
+            gameMode = 'daily'
+            localStorage.setItem('semantle:mode', gameMode)
+            initMode().then(() => setStatus('Modo diario listo.')).catch(error => setError(error.message))
+        })
+        btnPracticeMode.addEventListener('click', () => {
+            gameMode = 'practice'
+            localStorage.setItem('semantle:mode', gameMode)
+            initMode().then(() => setStatus('Modo practica listo.')).catch(error => setError(error.message))
+        })
+
+        ; (async () => {
+            try {
+                await initMode()
+                setStatus(gameOver ? 'Partida terminada.' : 'Palabra lista. A jugar.')
+            } catch (error) {
+                setError(error.message)
+                setStatus('No se pudo inicializar la app.')
+            }
+        })()
+    </script>
+</body>
+
+</html>

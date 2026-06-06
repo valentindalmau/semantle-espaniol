@@ -1,0 +1,32 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Modelo fasttext y fuentes descargables (no van al repo)
+cc.es.300.bin
+cc.es.300.bin.gz
+data/cc.es.300.bin
+data/cc.es.300.bin.gz
+data/fuentes/*.gz
+
+# Backups y crudos generados por las tools
+data/lexicon.raw.txt
+data/targets_es.raw.txt
+data/lexicon.prefreq.txt
+data/targets_es.bak.txt
+
+# Binarios generados: ignoramos los .npy ENSAMBLADOS, pero versionamos
+# las partes (data/*.npy.partNN; el cache de 405 MB se reensambla al arrancar),
+# el topk (63 MB, entra entero) y los .meta (chicos, validan integridad).
+data/*.npy
+data/*.npz
+data/*.meta
+!data/lexicon_embeddings.npy.part*
+!data/target_topk.npy
+!data/*.meta

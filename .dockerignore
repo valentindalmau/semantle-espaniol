@@ -1,0 +1,13 @@
+.env
+.git
+.venv
+venv
+__pycache__
+*.pyc
+data/cc.es.300.bin
+data/cc.es.300.bin.gz
+data/*.npy
+data/*.npz
+data/*.meta
+!data/lexicon_embeddings.npy
+!data/lexicon_embeddings.npy.meta
