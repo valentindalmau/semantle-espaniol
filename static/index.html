@@ -241,22 +241,107 @@
         }
 
         @media (max-width: 760px) {
+            .wrap {
+                padding: 18px 12px 40px;
+            }
+
             header,
             .summary {
-                display: block;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
             }
 
             header .date,
             #stats {
-                margin-top: 8px;
+                margin-top: 6px;
             }
 
-            .modebar,
+            /* Controles en 2 columnas en vez de una torre de botones */
             .toolbar,
-            .gamebar,
+            .gamebar {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            /* El selector de orden y los badges ocupan el ancho completo */
+            .toolbar select,
+            .gamebar .badge {
+                grid-column: 1 / -1;
+            }
+
+            .gamebar .badge {
+                justify-content: center;
+            }
+
+            /* La caja para adivinar queda en una sola fila, bien visible */
             .form {
-                grid-template-columns: 1fr;
-                display: grid;
+                display: flex;
+                margin: 14px 0 8px;
+            }
+
+            /* Tabla de intentos -> tarjetas apiladas (sin scroll horizontal) */
+            .table-wrap {
+                overflow: visible;
+                border: 0;
+                background: transparent;
+            }
+
+            table {
+                min-width: 0;
+            }
+
+            thead {
+                display: none;
+            }
+
+            table,
+            tbody,
+            tr,
+            td {
+                display: block;
+                width: 100%;
+            }
+
+            tbody tr {
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                padding: 8px 12px;
+                margin-bottom: 10px;
+            }
+
+            tbody td {
+                border: 0;
+                padding: 5px 0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                font-size: 15px;
+            }
+
+            tbody td::before {
+                content: attr(data-label);
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            /* La barra del score es redundante con "Similitud" en mobile */
+            tbody td.cell-scorebar {
+                display: none;
+            }
+
+            /* La celda de Top 1000: etiqueta arriba y barra a lo ancho */
+            tbody td.cell-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+
+            tbody td.cell-bar .bar {
+                width: 100%;
             }
         }
     </style>
@@ -505,9 +590,10 @@
             }
         }
 
-        function appendCell(row, text) {
+        function appendCell(row, text, label) {
             const td = document.createElement('td')
             td.textContent = text
+            if (label) td.dataset.label = label
             row.appendChild(td)
             return td
         }
@@ -518,18 +604,28 @@
             if (pinned) tr.classList.add('pinned')
             if (highlightedWord && item.word === highlightedWord) tr.classList.add('highlight')
 
-            appendCell(tr, String(item.n))
-            const wordCell = appendCell(tr, item.word)
+            appendCell(tr, String(item.n), 'Intento')
+
+            const wordCell = document.createElement('td')
+            wordCell.dataset.label = 'Palabra'
+            const wordVal = document.createElement('span')
+            wordVal.className = 'cellval'
+            wordVal.textContent = item.word
+            wordCell.appendChild(wordVal)
             if (pinned) {
                 const badge = document.createElement('span')
                 badge.className = 'badge'
                 badge.textContent = 'Ultimo intento'
                 badge.style.marginLeft = '8px'
-                wordCell.appendChild(badge)
+                wordVal.appendChild(badge)
             }
-            appendCell(tr, item.score.toFixed(1))
+            tr.appendChild(wordCell)
+
+            appendCell(tr, item.score.toFixed(1), 'Similitud')
 
             const barCell = document.createElement('td')
+            barCell.className = 'cell-scorebar'
+            barCell.dataset.label = 'Barra'
             const bar = document.createElement('div')
             bar.className = 'bar'
             const fill = document.createElement('div')
@@ -540,6 +636,8 @@
             tr.appendChild(barCell)
 
             const topCell = document.createElement('td')
+            topCell.className = 'cell-bar'
+            topCell.dataset.label = 'Top 1000'
             const topText = item.rankDisplay && item.topK ? `${item.rankDisplay}/${item.topK}` : '-'
             const topLabel = document.createElement('div')
             topLabel.textContent = topText
