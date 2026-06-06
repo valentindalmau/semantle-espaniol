@@ -4,10 +4,20 @@
 venv
 __pycache__
 *.pyc
+
+# Modelo fasttext y fuentes (no se usan en runtime)
 data/cc.es.300.bin
 data/cc.es.300.bin.gz
-data/*.npy
-data/*.npz
-data/*.meta
-!data/lexicon_embeddings.npy
-!data/lexicon_embeddings.npy.meta
+data/fuentes/*.gz
+
+# Backups generados por las tools
+data/lexicon.raw.txt
+data/targets_es.raw.txt
+data/lexicon.prefreq.txt
+data/targets_es.bak.txt
+
+# El cache ensamblado NO va a la imagen: se reensambla desde las partes
+# (data/lexicon_embeddings.npy.partNN) al arrancar el contenedor.
+# OJO: no excluir data/*.npy en general, porque target_topk.npy y las
+# partes SI tienen que entrar en el build.
+data/lexicon_embeddings.npy
