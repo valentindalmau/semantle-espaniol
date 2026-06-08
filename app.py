@@ -25,6 +25,10 @@ PUBLIC_REVEAL = os.getenv("PUBLIC_REVEAL", "true").lower() in {"1", "true", "yes
 ALLOW_RANDOM_TARGET = os.getenv("ALLOW_RANDOM_TARGET", "true").lower() in {"1", "true", "yes"}
 TOKEN_SECRET = os.getenv("TOKEN_SECRET", "dev-secret-change-me")
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+# URL publica del sitio (ej. https://semantle.tudominio.com). Se usa para armar las
+# URLs absolutas de Open Graph / canonical / sitemap. Si esta vacia se infiere del
+# request, pero detras de un proxy conviene setearla en produccion.
+SITE_URL = os.getenv("SITE_URL", "").rstrip("/")
 
 WORD_RE = re.compile(r"^[a-záéíóúüñ]+$", re.IGNORECASE)
 
@@ -285,9 +289,37 @@ def game_info(seed: int, date: Optional[str] = None) -> Dict[str, object]:
     }
 
 
+def base_url() -> str:
+    return SITE_URL or request.url_root.rstrip("/")
+
+
 @app.get("/")
 def home():
-    return send_from_directory(app.static_folder, "index.html")
+    with open(os.path.join(app.static_folder, "index.html"), "r", encoding="utf-8") as f:
+        document = f.read()
+    return document.replace("{{BASE_URL}}", base_url())
+
+
+@app.get("/favicon.ico")
+def favicon_ico():
+    return send_from_directory(app.static_folder, "favicon.svg", mimetype="image/svg+xml")
+
+
+@app.get("/robots.txt")
+def robots_txt():
+    body = f"User-agent: *\nAllow: /\nSitemap: {base_url()}/sitemap.xml\n"
+    return app.response_class(body, mimetype="text/plain")
+
+
+@app.get("/sitemap.xml")
+def sitemap_xml():
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"<url><loc>{base_url()}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>"
+        "</urlset>"
+    )
+    return app.response_class(xml, mimetype="application/xml")
 
 
 @app.get("/api/today")
